@@ -175,36 +175,16 @@
     },
 
     methods: {
-      sendPIDs(id, constants){
-        const msg={
-          'type':'SetParam',
-          'deviceID': parseInt(id),
-          'paramID': 1,  //talon_srx.Params.ProfileParamSlot0_P
-          'value': constants['kp']
-        }
-        this.lcm_.publish('/set_param', msg);
-
-        msg['paramID'] = 2  //talon_srx.Params.ProfileParamSlot0_I
-        msg['value'] = constants['ki']
-        this.lcm_.publish('/set_param', msg);
-
-        msg['paramID'] = 3  //talon_srx.Params.ProfileParamSlot0_D
-        msg['value'] = constants['kd']
-        this.lcm_.publish('/set_param', msg);
-
-        msg['paramID'] = 4  //talon_srx.Params.ProfileParamSlot0_F
-        msg['value'] = constants['kf']
-        this.lcm_.publish('/set_param', msg);
-      },
-
       setParams(){
-        const constants = {
-          'kp': parseFloat(this.Kp),
-          'ki': parseFloat(this.Ki),
-          'kd': parseFloat(this.Kd),
-          'kf': parseFloat(this.Kf)
+        const msg = {
+          'type': 'PIDConstants',
+          'deviceID': parseInt(this.deviceID),
+          'kP': parseFloat(this.Kp),
+          'kI': parseFloat(this.Ki),
+          'kD': parseFloat(this.Kd),
+          'kF': parseFloat(this.Kf)
         }
-        this.sendPIDs(parseInt(this.deviceID), constants)
+        this.lcm_.publish('/config_pid', msg)
       },
 
       setDemand(){
