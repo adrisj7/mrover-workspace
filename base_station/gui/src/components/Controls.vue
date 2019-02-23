@@ -74,6 +74,17 @@ export default {
       'y': 3
     }
 
+    const SM_CONFIG = {
+        'x': 0,
+        'y': 1,
+        'z': 2,
+        'xA': 3,
+        'yA': 4,
+        'zA': 5,
+        'l_button': 0,
+        'r_button': 1
+    }
+
     const updateRate = 0.05;
     window.setInterval(() => {
       const gamepads = navigator.getGamepads()
@@ -157,6 +168,46 @@ export default {
 
               openloop.joint_id = 6
               openloop.speed = (xboxData['right_bumper'] - xboxData['left_bumper'])
+              this.$parent.publish('/arm_motors', openloop)
+            }
+          } else if (gamepad.id.includes("Spacemouse")) {
+            if (this.controlMode === 'arm_ik') {
+              let speed = 0.3;
+              const deltaPos = {
+                'type': 'IkArmControl',
+                'deltaX': (gamepad.axes[SM_CONFIG['x']]**3)*speed*updateRate,
+                'deltaY': -(gamepad.axes[SM_CONFIG['z']]**3)*speed*updateRate,
+                'deltaZ': (gamepad.axes[SM_CONFIG['y']]**3)*speed*updateRate,
+                'deltaJointE': (gamepad.axes[SM_CONFIG['zA']]**3)*0.4*updateRate,
+                'deltaTilt': 0,
+              }
+
+              if(Math.abs(deltaPos.deltaX) < 0.0001){
+                deltaPos.deltaX=0;
+              }
+              if(Math.abs(deltaPos.deltaY) < 0.0001){
+                deltaPos.deltaY=0;
+              }
+              if(Math.abs(deltaPos.deltaZ) < 0.0001){
+                deltaPos.deltaZ=0;
+              }
+              if(Math.abs(deltaPos.deltaJointE) < 0.0001){
+                deltaPos.deltaJointE=0;
+              }
+              if(Math.abs(deltaPos.deltaTilt) < 0.0001){
+                deltaPos.deltaTilt=0;
+              }
+              this.$parent.publish('/ik_arm_control', deltaPos);
+
+              let openloop = {
+                'type': 'OpenLoopRAMotor',
+                'joint_id': 5,
+                'speed': (gamepad.axes[SM_CONFIG['xA']]**3)*0.60,
+              }
+              this.$parent.publish('/arm_motors', openloop)
+
+              openloop.joint_id = 6
+              openloop.speed = (gamepad.axes[SM_CONFIG['yA']]**3)*0.60
               this.$parent.publish('/arm_motors', openloop)
             }
           }
